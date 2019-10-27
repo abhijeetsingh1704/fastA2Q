@@ -2,11 +2,14 @@
 
 set -ou pipefail
 
+# making colour variable
+RESTORE='\033[0m'
+YELLOW='\033[01;33m'
+
 ###    Recording the time whent he script was started
 
 start=$(date +%s) #start time of script
-RESTORE='\033[0m'
-YELLOW='\033[01;33m'
+
 
 echo -e \
 " ________________________________________
@@ -130,13 +133,13 @@ perl -pe '/^>/ ? print "\n" : chomp' ${input_file} | sed '/^$/d' | sed '/>/d' > 
 ### making fastq header components (constant variables)
 
 #   unique instrument name
-place_1=`cat /dev/urandom | tr -dc 'A-Z' | fold -w 3 | head -n 1`
+P1=`cat /dev/urandom | tr -dc 'A-Z' | fold -w 3 | head -n 1`
 #   run id
-place_2=`cat /dev/urandom | tr -dc 'A-Z' | fold -w 5 | head -n 1`
+P2=`cat /dev/urandom | tr -dc 'A-Z' | fold -w 5 | head -n 1`
 #   flowcell id
-place_3=`cat /dev/urandom | tr -dc 'A-Z0-9' | fold -w 7 | head -n 1`
+P3=`cat /dev/urandom | tr -dc 'A-Z0-9' | fold -w 7 | head -n 1`
 #   flowcell lane
-place_4=`cat /dev/urandom | tr -dc '0-9' | fold -w 5 | head -n 1`
+P4=`cat /dev/urandom | tr -dc '0-9' | fold -w 5 | head -n 1`
 
 ###
 
@@ -152,46 +155,47 @@ ASCII=`cat /dev/urandom | tr -dc '5678<9:;=?ABC>DEFGHI' | fold -w $size | head -
 ### making fastq header components (variable variables)
 
 #   tile number within the flowcell lane
-place_5=`cat /dev/urandom | tr -dc '0-9' | fold -w 4 | head -n 1`
+P5=`cat /dev/urandom | tr -dc '0-9' | fold -w 4 | head -n 1`
 #   'x'-coordinate of the cluster within the tile
-place_6=`cat /dev/urandom | tr -dc '0-9' | fold -w 5 | head -n 1`
+P6=`cat /dev/urandom | tr -dc '0-9' | fold -w 5 | head -n 1`
 #   'y'-coordinate of the cluster within the tile
-place_7=`cat /dev/urandom | tr -dc '0-9' | fold -w 6 | head -n 1`
+P7=`cat /dev/urandom | tr -dc '0-9' | fold -w 6 | head -n 1`
 #   the member of a pair, 1 or 2 (paired-end or mate-pair reads only)
-place_8=`cat /dev/urandom | tr -dc '12' | fold -w 1 | head -n 1`
+P8=`cat /dev/urandom | tr -dc '12' | fold -w 1 | head -n 1`
 #   Y if the read is filtered, N otherwise
-place_9=`cat /dev/urandom | tr -dc 'YN' | fold -w 1 | head -n 1`
+P9=`cat /dev/urandom | tr -dc 'YN' | fold -w 1 | head -n 1`
 #   control bits
-place_10=`cat /dev/urandom | tr -dc '06284' | fold -w 2 | head -n 1`
+P10=`cat /dev/urandom | tr -dc '06284' | fold -w 2 | head -n 1`
 #   index 1 sequence
-place_11=`cat /dev/urandom | tr -dc 'ATGC' | fold -w 8 | head -n 1`
+P11=`cat /dev/urandom | tr -dc 'ATGC' | fold -w 8 | head -n 1`
 #   index 2 sequence
-place_12=`cat /dev/urandom | tr -dc 'CAGT' | fold -w 8 | head -n 1`
+P12=`cat /dev/urandom | tr -dc 'CAGT' | fold -w 8 | head -n 1`
 
-#	defining the character variable
+#	defining the character variable for quality part
 character=$( echo $ASCII)
 
-#echo -e "$line1\n$line2" |\
-#	sed -e "1i\@${place_1}:${place_2}:${place_3}:${place_4}:${place_5}:${place_6} | \
-#	:${place_7} ${place_8}:${place_9}:${place_10}${place_11}+${place_12}" >> ${output_file_def}
-
+#   making fastq
 
 echo -e "$line" |\
-	sed -e "1i@${place_1}:${place_2}:${place_3}:${place_4}:${place_5}:${place_6}:${place_7} ${place_8}:${place_9}:${place_10}:${place_11}+${place_12}"  | \
+	sed -e "1i@${P1}:${P2}:${P3}:${P4}:${P5}:${P6}:${P7} ${P8}:${P9}:${P10}:${P11}+${P12}"  | \
 	#sed -e "\$a+\n$ASCII"  | \ 
 	sed -e "\$a+\n$character"  | \
 	cut -c -$size  >> ${output_file} #| cut -c -$size >>
 
-
+# closing while loop
 done < ${input_file}.tmp
+
+# remove temporary file
 rm ${input_file}.tmp
 
 #################
 
+# variable for echo outfile
 output_file_echo=$(echo ${output_file} | rev | cut -d "/" -f1 | rev)
 
 ###
 
+# getting ened time
 end=$(date +%s) # end time of script
 runtime=$(((end - start))) # calculate runtime
 
