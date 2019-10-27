@@ -20,7 +20,7 @@ echo -e \
 | |_|  \__,_|___/\__/_/   \_\_____|\__\_\ |
 |_________________________________________|
 \n#\t${YELLOW}©Abhijeet Singh${RESTORE}
-#\t${YELLOW} abhijeetsingh.aau@gmail.com${RESTORE}
+#\t${YELLOW}-abhijeetsingh.aau@gmail.com${RESTORE}
 "
 
 ###     Setting up variables
