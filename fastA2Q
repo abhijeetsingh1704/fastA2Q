@@ -1,0 +1,203 @@
+#!/bin/bash
+
+set -ou pipefail
+
+###    Recording the time whent he script was started
+
+start=$(date +%s) #start time of script
+RESTORE='\033[0m'
+YELLOW='\033[01;33m'
+
+echo -e \
+" ________________________________________
+|   __           _      _    ____   ___   |
+|  / _| __ _ ___| |_   / \  |___ \ / _ \  |
+| | |_ / _| / __| __| / _ \   __) | | | | |
+| |  _| (_| \__ \ |_ / ___ \ / __/| |_| | |
+| |_|  \__,_|___/\__/_/   \_\_____|\__\_\ |
+|_________________________________________|
+\n#\t${YELLOW}©Abhijeet Singh${RESTORE}
+#\t${YELLOW} abhijeetsingh.aau@gmail.com${RESTORE}
+"
+
+###     Setting up variables
+
+input_file=""            
+output_file=""           
+
+###     Username
+
+user=$(echo ${SUDO_USER:-${USER}})
+
+###     Defaults
+
+version_def="0.1.0"
+
+###    Getting processors information
+
+THREADS=$(nproc 2> /dev/null || sysctl -n hw.ncpu 2> /dev/null || getconf _NPROCESSORS_ONLN 2> /dev/null)
+
+###     Defining flags
+
+#       function
+
+usage() {
+echo "Usage   : $0 [-i <input file>] [-o <output file>]
+Example : fastA2Q -i /<input file>/ -o /<output file>/" 1>&2; exit 1;
+}
+
+
+#       flags
+
+while getopts "i:o:hv" flags; 
+        do      
+                case "${flags}" in
+                        
+                        i)
+                                input_file=${OPTARG}
+                                ;;
+
+                        o)
+                                output_file=${OPTARG}
+                                ;;
+
+                        h)
+                                echo "
+Example : fastA2Q -i /<input file>/ -o /<output file>/
+
+        -i      Input file
+        -o      Output file
+        -h      print Help
+        -v      print fastA2Q version"
+                                exit                                
+                                ;;
+
+                        v)
+                                echo "fastA2Q version: ${version_def}"
+                                exit
+                                ;;
+
+                        *)
+                                usage
+                                exit
+                                ;;
+
+                        :)      
+                                usage
+                                exit
+                                ;;
+                        
+                        \?)
+                                usage
+                                exit
+                                ;;
+
+                esac
+        done
+
+shift $((OPTIND-1))
+
+###     check
+
+if ((OPTIND == 1));then
+        echo -e "\n#\tInput file not provided, Aborting!\n"
+        usage
+        exit
+else
+        echo -e "\n#\tProcessing: ${input_file}\n"
+fi
+
+
+###
+
+###     Checking output_file 
+
+output_file_def=$(echo ${input_file} | cut -d "." -f1)
+
+if [ "$output_file" == "" ]; then
+        output_file="${output_file_def}.fastq"
+        echo -e "\n#\tUsing default output file: ${output_file_def}.fastq\n"
+else
+        echo -e "\n#\tOutput file: ${output_file}\n"
+fi
+
+###
+
+#	making a new file
+perl -pe '/^>/ ? print "\n" : chomp' ${input_file} | sed '/^$/d' | sed '/>/d' > ${input_file}.tmp
+
+
+### making fastq header components (constant variables)
+
+#   unique instrument name
+place_1=`cat /dev/urandom | tr -dc 'A-Z' | fold -w 3 | head -n 1`
+#   run id
+place_2=`cat /dev/urandom | tr -dc 'A-Z' | fold -w 5 | head -n 1`
+#   flowcell id
+place_3=`cat /dev/urandom | tr -dc 'A-Z0-9' | fold -w 7 | head -n 1`
+#   flowcell lane
+place_4=`cat /dev/urandom | tr -dc '0-9' | fold -w 5 | head -n 1`
+
+###
+
+while read line
+do
+chrlen=${#line}
+size=$( echo $chrlen)
+
+#	change your ASCII symbol if you want 
+#	but this is already phred score 20 and above
+ASCII=`cat /dev/urandom | tr -dc '5678<9:;=?ABC>DEFGHI' | fold -w $size | head -n 1`
+
+### making fastq header components (variable variables)
+
+#   tile number within the flowcell lane
+place_5=`cat /dev/urandom | tr -dc '0-9' | fold -w 4 | head -n 1`
+#   'x'-coordinate of the cluster within the tile
+place_6=`cat /dev/urandom | tr -dc '0-9' | fold -w 5 | head -n 1`
+#   'y'-coordinate of the cluster within the tile
+place_7=`cat /dev/urandom | tr -dc '0-9' | fold -w 6 | head -n 1`
+#   the member of a pair, 1 or 2 (paired-end or mate-pair reads only)
+place_8=`cat /dev/urandom | tr -dc '12' | fold -w 1 | head -n 1`
+#   Y if the read is filtered, N otherwise
+place_9=`cat /dev/urandom | tr -dc 'YN' | fold -w 1 | head -n 1`
+#   control bits
+place_10=`cat /dev/urandom | tr -dc '06284' | fold -w 2 | head -n 1`
+#   index 1 sequence
+place_11=`cat /dev/urandom | tr -dc 'ATGC' | fold -w 8 | head -n 1`
+#   index 2 sequence
+place_12=`cat /dev/urandom | tr -dc 'CAGT' | fold -w 8 | head -n 1`
+
+#	defining the character variable
+character=$( echo $ASCII)
+
+#echo -e "$line1\n$line2" |\
+#	sed -e "1i\@${place_1}:${place_2}:${place_3}:${place_4}:${place_5}:${place_6} | \
+#	:${place_7} ${place_8}:${place_9}:${place_10}${place_11}+${place_12}" >> ${output_file_def}
+
+
+echo -e "$line" |\
+	sed -e "1i@${place_1}:${place_2}:${place_3}:${place_4}:${place_5}:${place_6}:${place_7} ${place_8}:${place_9}:${place_10}:${place_11}+${place_12}"  | \
+	#sed -e "\$a+\n$ASCII"  | \ 
+	sed -e "\$a+\n$character"  | \
+	cut -c -$size  >> ${output_file} #| cut -c -$size >>
+
+
+done < ${input_file}.tmp
+rm ${input_file}.tmp
+
+#################
+
+output_file_echo=$(echo ${output_file} | rev | cut -d "/" -f1 | rev)
+
+###
+
+end=$(date +%s) # end time of script
+runtime=$(((end - start))) # calculate runtime
+
+### 
+echo -e "\n#\tProcessed >>>| $YELLOW${output_file_echo}$RESTORE |<<< in {$YELLOW${runtime} sec$RESTORE}\n\n###"
+###
+
+
+### End of script
