@@ -1,25 +1,31 @@
 #!/bin/bash
 
+#	Program 	- 	fastA2Q
+#	Written by	-	Abhijeet Singh (abhijeetsingh.aau@gmail.com)
+#	Time 		-	Tue, 20191029, 11:55
+
 set -ou pipefail
 
 # making colour variable
 RESTORE='\033[0m'
 YELLOW='\033[01;33m'
+LRED='\033[01;31m' 
+
 
 ###    Recording the time whent he script was started
 
 start=$(date +%s) #start time of script
 
 
-echo -e \
-" ________________________________________
+echo -e "$LRED\
+ _________________________________________
 |   __           _      _    ____   ___   |
 |  / _| __ _ ___| |_   / \  |___ \ / _ \  |
 | | |_ / _| / __| __| / _ \   __) | | | | |
 | |  _| (_| \__ \ |_ / ___ \ / __/| |_| | |
 | |_|  \__,_|___/\__/_/   \_\_____|\__\_\ |
 |_________________________________________|
-\n#\t${YELLOW}©Abhijeet Singh${RESTORE}
+${RESTORE}\n#\t${YELLOW}©Abhijeet Singh${RESTORE}
 #\t${YELLOW}-abhijeetsingh.aau@gmail.com${RESTORE}
 "
 
@@ -35,10 +41,6 @@ user=$(echo ${SUDO_USER:-${USER}})
 ###     Defaults
 
 version_def="0.1.0"
-
-###    Getting processors information
-
-THREADS=$(nproc 2> /dev/null || sysctl -n hw.ncpu 2> /dev/null || getconf _NPROCESSORS_ONLN 2> /dev/null)
 
 ###     Defining flags
 
@@ -76,7 +78,7 @@ Example : fastA2Q -i /<input file>/ -o /<output file>/
                                 ;;
 
                         v)
-                                echo "fastA2Q version: ${version_def}"
+                                echo -e "${YELLOW}fastA2Q version: ${version_def}${RESTORE}\n\n###"
                                 exit
                                 ;;
 
@@ -200,8 +202,8 @@ end=$(date +%s) # end time of script
 runtime=$(((end - start))) # calculate runtime
 
 ### 
-echo -e "\n#\tProcessed >>>| $YELLOW${output_file_echo}$RESTORE |<<< in {$YELLOW${runtime} sec$RESTORE}\n\n###"
+echo -e "\n#\tProcessed >>>| $YELLOW${output_file_echo}$RESTORE |<<< in {$YELLOW${runtime} sec$RESTORE}\n\n"
 ###
 
-
+echo -e "\n#\t$YELLOW${user}$RESTORE, Thanks for using $YELLOW\"fastA2Q\"$RESTORE\n\n###"
 ### End of script
