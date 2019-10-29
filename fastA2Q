@@ -4,6 +4,8 @@
 #	Written by	-	Abhijeet Singh (abhijeetsingh.aau@gmail.com)
 #	Time 		-	Tue, 20191029, 11:55
 
+# set pipefail
+
 set -ou pipefail
 
 # making colour variable
@@ -12,7 +14,7 @@ YELLOW='\033[01;33m'
 LRED='\033[01;31m' 
 
 
-###    Recording the time whent he script was started
+###    Recording the time whent the script was started
 
 start=$(date +%s) #start time of script
 
@@ -137,11 +139,11 @@ perl -pe '/^>/ ? print "\n" : chomp' ${input_file} | sed '/^$/d' | sed '/>/d' > 
 #   unique instrument name
 P1=`cat /dev/urandom | tr -dc 'A-Z' | fold -w 3 | head -n 1`
 #   run id
-P2=`cat /dev/urandom | tr -dc 'A-Z' | fold -w 5 | head -n 1`
+P2=`cat /dev/urandom | tr -dc '0-9' | fold -w 3 | head -n 1`
 #   flowcell id
 P3=`cat /dev/urandom | tr -dc 'A-Z0-9' | fold -w 7 | head -n 1`
 #   flowcell lane
-P4=`cat /dev/urandom | tr -dc '0-9' | fold -w 5 | head -n 1`
+P4=`cat /dev/urandom | tr -dc '1-8' | fold -w 1 | head -n 1`
 
 ###
 
@@ -161,7 +163,7 @@ P5=`cat /dev/urandom | tr -dc '0-9' | fold -w 4 | head -n 1`
 #   'x'-coordinate of the cluster within the tile
 P6=`cat /dev/urandom | tr -dc '0-9' | fold -w 5 | head -n 1`
 #   'y'-coordinate of the cluster within the tile
-P7=`cat /dev/urandom | tr -dc '0-9' | fold -w 6 | head -n 1`
+P7=`cat /dev/urandom | tr -dc '0-9' | fold -w 5 | head -n 1`
 #   the member of a pair, 1 or 2 (paired-end or mate-pair reads only)
 P8=`cat /dev/urandom | tr -dc '12' | fold -w 1 | head -n 1`
 #   Y if the read is filtered, N otherwise
