@@ -2,9 +2,9 @@
 
 * A simple and convenient program to convert fasta sequences to fastq sequences, in casava 1.8 header format version. 
 
-## An example of fastq header output with fastA2Q
+### An example of fastq header output with fastA2Q
 
-#### @LSM:213:VGKE2RP:2:1971:12668:04830 2:N:66:CGGACGTA+GTTCACGT
+##### @LSM:213:VGKE2RP:2:1971:12668:04830 2:N:66:CGGACGTA+GTTCACGT
 
 ```
 where
