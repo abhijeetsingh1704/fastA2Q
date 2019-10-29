@@ -1,6 +1,7 @@
 # fastA2Q
 
 * A simple and convenient program to convert fasta sequences to fastq sequences, in casava 1.8 header format version. 
+* The fastq sequence quality scores will be ≥ 20 and distributed throughout the fastq sequence length, reference - https://support.illumina.com/help/BaseSpace_OLH_009008/Content/Source/Informatics/BS/QualityScoreEncoding_swBS.htm
 
 ### An example of fastq header output with fastA2Q
 
@@ -31,7 +32,7 @@ GTTCACGT  - index 2 sequence
 ```
 chmod +x fastA2Q
 ```
-### Running the program
+#### Running the program
 ```
 fastA2Q -i /path/input_file.fasta -o /path/output_file.fastq
 ```
