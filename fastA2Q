@@ -150,7 +150,7 @@ P4=`cat /dev/urandom | tr -dc '1-8' | fold -w 1 | head -n 1`
 while read line
 do
 chrlen=${#line}
-size=$( echo $chrlen)
+size=$( echo "$(($chrlen-1))")
 
 #	change your ASCII symbol if you want 
 #	but this is already phred score 20 and above
