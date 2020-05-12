@@ -2,22 +2,23 @@
 
 #	Program 	- 	fastA2Q
 #	Written by	-	Abhijeet Singh (abhijeetsingh.aau@gmail.com)
-#	Time 		-	Tue, 20191029, 11:55
+#	Time 		-	tis 12 maj 2020 22:30:19 CEST
 
 # set pipefail
 
-set -ou pipefail
+set -uo pipefail
 
 # making colour variable
 RESTORE='\033[0m'
 YELLOW='\033[01;33m'
-LRED='\033[01;31m' 
+LRED='\033[01;31m'
 
 
 ###    Recording the time whent the script was started
 
 start=$(date +%s) #start time of script
 
+###
 
 echo -e "$LRED\
  _________________________________________
@@ -25,177 +26,232 @@ echo -e "$LRED\
 |  / _| __ _ ___| |_   / \  |___ \ / _ \  |
 | | |_ / _| / __| __| / _ \   __) | | | | |
 | |  _| (_| \__ \ |_ / ___ \ / __/| |_| | |
-| |_|  \__,_|___/\__/_/   \_\_____|\__\_\ |
+| |_|  \__|_|___/\__/_/   \_\_____|\__\_\ |
 |_________________________________________|
 ${RESTORE}\n#\t${YELLOW}©Abhijeet Singh${RESTORE}
 #\t${YELLOW}-abhijeetsingh.aau@gmail.com${RESTORE}
 "
 
-###     Setting up variables
+### Variable for the date
 
-input_file=""            
-output_file=""           
+    DATE=$(date +"%Y%m%d_%H_%M_%S")
 
-###     Username
+### Setting up variables
 
-user=$(echo ${SUDO_USER:-${USER}})
+    input_file=""
+    output_file=""
 
-###     Defaults
+### Defaults variables
 
-version_def="0.1.0"
+    output_file_def="fastA2Q_${DATE}.fastq"
+    version_def="1.0"
 
-###     Defining flags
+### Username
 
-#       function
+    user="${SUDO_USER:-${USER}}"
+
+### Defining flags
+
+#   function
 
 usage() {
 echo "Usage   : $0 [-i <input file>] [-o <output file>]
-Example : fastA2Q -i /<input file>/ -o /<output file>/" 1>&2; exit 1;
+Example : fastA2Q -i /<input file>/ -o /<output file>/" 1>&2; return 1;
 }
 
 
-#       flags
+#   flags
 
-while getopts "i:o:hv" flags; 
-        do      
-                case "${flags}" in
-                        
-                        i)
-                                input_file=${OPTARG}
-                                ;;
+while getopts "i:o:hv" flags;
 
-                        o)
-                                output_file=${OPTARG}
-                                ;;
+    do
+        case "${flags}" in
 
-                        h)
-                                echo "
+            i)
+                input_file=${OPTARG}
+                ;;
+            o)
+                output_file=${OPTARG}
+                ;;
+            h)
+                echo "
 Example : fastA2Q -i /<input file>/ -o /<output file>/
 
         -i      Input file
         -o      Output file
         -h      print Help
         -v      print fastA2Q version"
-                                exit                                
-                                ;;
-
-                        v)
-                                echo -e "${YELLOW}fastA2Q version: ${version_def}${RESTORE}\n\n###"
-                                exit
-                                ;;
-
-                        *)
-                                usage
-                                exit
-                                ;;
-
-                        :)      
-                                usage
-                                exit
-                                ;;
-                        
-                        \?)
-                                usage
-                                exit
-                                ;;
-
-                esac
-        done
+                exit
+                ;;
+            v)
+                echo -e "${YELLOW}fastA2Q version: ${version_def}${RESTORE}\n\n###"
+                exit
+                ;;
+            *)
+                usage
+                exit
+                ;;
+            :)
+                usage
+                exit
+                ;;
+            \?)
+                usage
+                exit
+                ;;
+        esac
+    done
 
 shift $((OPTIND-1))
 
-###     check
+### check
 
 if ((OPTIND == 1));then
-        echo -e "\n#\tInput file not provided, Aborting!\n"
-        usage
-        exit
+    echo -e "\n#\tInput file not provided, Aborting!\n"
+    usage
+    exit
 else
-        echo -e "\n#\tProcessing: ${input_file}\n"
+    echo -e "\n#\tProcessing: ${input_file}\n"
 fi
 
 
-###
+### Getting input
 
-###     Checking output_file 
+    #   Check if input file provided
 
-output_file_def=$(echo ${input_file} | cut -d "." -f1)
+        if [ -z "${input_file}" ] ; then
+            echo -e "\n#\t${LRED}Input file not provided, Aborting!!!\n###\n${RESTORE} ${YELLOW}"
+            usage
+            echo -e "\n###${RESTORE}"
+            exit 1
+        fi
 
-if [ "$output_file" == "" ]; then
-        output_file="${output_file_def}.fastq"
-        echo -e "\n#\tUsing default output file: ${output_file_def}.fastq\n"
-else
-        echo -e "\n#\tOutput file: ${output_file}\n"
-fi
+    #   Check if input file is accessible
 
-###
+        if [ ! -f "${input_file}" ] ; then
+            echo -e "\n#\t${LRED}Input file ${input_file} could not be found, Aborting!!!\n###\n${RESTORE} ${YELLOW}"
+            usage
+            echo -e "\n###${RESTORE}"
+            exit 1
+        else
+            #   Making variable paths
 
-#	making a new file
-perl -pe '/^>/ ? print "\n" : chomp' ${input_file} | sed '/^$/d' | sed '/>/d' > ${input_file}.tmp
+                input_path=$(dirname "$(realpath "${input_file}")")
+
+            #   Checking file contents
+
+                echo -e "\n#\tContents of input file ${YELLOW}$(basename "${input_file}")${RESTORE}"
+
+            #   Counting number of bases
+
+                npos=$(grep -v '>' "${input_file}" | wc | awk '{print $3-$1}')
+
+            #   Counting number of sequences
+
+                nseq=$(grep -c '>' "${input_file}")
+
+            #   Displaying file contents
+
+                echo -e "\t\t${YELLOW}${npos}${RESTORE} bases in ${YELLOW}${nseq}${RESTORE} sequences"
+        fi
+
+
+
+### Checking output file provided or using default
+
+    if [ "$output_file" == "" ]; then
+        output_file="${output_file_def}"
+        echo -e "\n#\tUsing default output file:"
+        echo -e "\t\t${YELLOW}${output_file_def}${RESTORE}"
+    else
+        echo -e "\n#\tOutput file:"
+        echo -e "\t\t${YELLOW}${output_file}${RESTORE}"
+    fi
+
+### Checking output path
+
+    output_path=${input_path}
+
+
+    #   making a new file
+
+    perl -pe '/^>/ ? print "\n" : chomp' "${input_file}" | sed '/^$/d' | sed '/>/d' > "${input_file}.tmp"
 
 
 ### making fastq header components (constant variables)
 
-#   unique instrument name
-P1=`cat /dev/urandom | tr -dc 'A-Z' | fold -w 3 | head -n 1`
-#   run id
-P2=`cat /dev/urandom | tr -dc '0-9' | fold -w 3 | head -n 1`
-#   flowcell id
-P3=`cat /dev/urandom | tr -dc 'A-Z0-9' | fold -w 7 | head -n 1`
-#   flowcell lane
-P4=`cat /dev/urandom | tr -dc '1-8' | fold -w 1 | head -n 1`
+
+    #   unique instrument name
+        P1=$(tr -dc '[:upper:]' < /dev/urandom | dd bs=32 count=1 status=none | fold -w 3 | head -n 1)
+    #   run id
+        P2=$(tr -dc '0-9' < /dev/urandom | dd bs=32 count=1 status=none | fold -w 3 | head -n 1)
+    #   flowcell id
+        P3=$(tr -dc 'A-Z0-9' < /dev/urandom | dd bs=32 count=1 status=none | fold -w 7 | head -n 1)
+    #   flowcell lane
+        P4=$(tr -dc '1-8' < /dev/urandom | dd bs=32 count=1 status=none | fold -w 1 | head -n 1)
 
 ###
 
-while read line
-do
-chrlen=${#line}
-size=$( echo "$(($chrlen-1))")
+printf "" > "${output_path}/${output_file}"
 
-#	change your ASCII symbol if you want 
-#	but this is already phred score 20 and above
-ASCII=`cat /dev/urandom | tr -dc '5678<9:;=?ABC>DEFGHI' | fold -w $size | head -n 1`
+#
+    for line in $(cat "${input_file}.tmp")
+        do
+            chrlen=${#line}
+            size=$( echo "$(($chrlen-1))")
 
-### making fastq header components (variable variables)
+        #   change your ASCII symbol if you want
+        #   but this is already phred score 20 and above
+            ASCII=`cat /dev/urandom | tr -dc '5678<9:;=?ABC>DEFGHI' | fold -w $size | head -n 1`
 
-#   tile number within the flowcell lane
-P5=`cat /dev/urandom | tr -dc '0-9' | fold -w 4 | head -n 1`
-#   'x'-coordinate of the cluster within the tile
-P6=`cat /dev/urandom | tr -dc '0-9' | fold -w 5 | head -n 1`
-#   'y'-coordinate of the cluster within the tile
-P7=`cat /dev/urandom | tr -dc '0-9' | fold -w 5 | head -n 1`
-#   the member of a pair, 1 or 2 (paired-end or mate-pair reads only)
-P8=`cat /dev/urandom | tr -dc '12' | fold -w 1 | head -n 1`
-#   Y if the read is filtered, N otherwise
-P9=`cat /dev/urandom | tr -dc 'YN' | fold -w 1 | head -n 1`
-#   control bits
-P10=`cat /dev/urandom | tr -dc '06284' | fold -w 2 | head -n 1`
-#   index 1 sequence
-P11=`cat /dev/urandom | tr -dc 'ATGC' | fold -w 8 | head -n 1`
-#   index 2 sequence
-P12=`cat /dev/urandom | tr -dc 'CAGT' | fold -w 8 | head -n 1`
+        ### making fastq header components (variable variables)
 
-#	defining the character variable for quality part
-character=$( echo $ASCII)
+        #   tile number within the flowcell lane
+            P5=$(tr -dc '0-9' < /dev/urandom | dd bs=32 count=1 status=none | fold -w 4 | head -n 1)
+        #   'x'-coordinate of the cluster within the tile
+            P6=$(tr -dc '0-9' < /dev/urandom | dd bs=32 count=1 status=none | fold -w 5 | head -n 1)
+        #   'y'-coordinate of the cluster within the tile
+            P7=$(tr -dc '0-9' < /dev/urandom | dd bs=32 count=1 status=none | fold -w 5 | head -n 1)
+        #   the member of a pair, 1 or 2 (paired-end or mate-pair reads only)
+            P8=$(tr -dc '12' < /dev/urandom | dd bs=32 count=1 status=none | fold -w 1 | head -n 1)
+        #   Y if the read is filtered, N otherwise
+            P9=$(tr -dc 'YN' < /dev/urandom | dd bs=32 count=1 status=none | fold -w 1 | head -n 1)
+        #   control bits
+            P10=$(tr -dc '06284' < /dev/urandom | dd bs=32 count=1 status=none | fold -w 2 | head -n 1)
+        #   index 1 sequence
+            P11=$(tr -dc 'ATGC' < /dev/urandom | dd bs=32 count=1 status=none | fold -w 8 | head -n 1)
+        #   index 2 sequence
+            P12=$(tr -dc 'CAGT' < /dev/urandom | dd bs=32 count=1 status=none | fold -w 8 | head -n 1)
+
+        #   defining the character variable for quality part
+            character=$( echo "${ASCII}")
 
 #   making fastq
 
-echo -e "$line" |\
-	sed -e "1i@${P1}:${P2}:${P3}:${P4}:${P5}:${P6}:${P7} ${P8}:${P9}:${P10}:${P11}+${P12}"  | \
-	#sed -e "\$a+\n$ASCII"  | \ 
-	sed -e "\$a+\n$character"  | \
-	cut -c -$size  >> ${output_file} #| cut -c -$size >>
+    echo -e "${line}" |\
+        sed -e "1i@${P1}:${P2}:${P3}:${P4}:${P5}:${P6}:${P7} ${P8}:${P9}:${P10}:${P11}+${P12}"  | \
+        sed -e "\$a+\n${character}"  | \
+        cut -c -"${size}"  #>> ${output_file} #| cut -c -$size >>
 
-# closing while loop
-done < ${input_file}.tmp
+    # closing while loop
+        done >> "${output_path}/${output_file}"
 
-# remove temporary file
-rm ${input_file}.tmp
 
-#################
+    # remove temporary file
+        find "${input_path}" -name "${input_file}.tmp" -exec rm {} \;
 
-# variable for echo outfile
-output_file_echo=$(echo ${output_file} | rev | cut -d "/" -f1 | rev)
+#   Checking outputfile contents
+
+    echo -e "\n#\tContents of output file ${YELLOW}$(basename "${output_path}/${output_file}" )${RESTORE}"
+
+    #   Counting number of sequences
+
+        nseq=$(grep -c '@' "${output_path}/${output_file}")
+
+    #   Displaying file contents
+
+        echo -e "\t\t${YELLOW}${nseq}${RESTORE} fastq sequences"
+
 
 ###
 
@@ -203,8 +259,8 @@ output_file_echo=$(echo ${output_file} | rev | cut -d "/" -f1 | rev)
 end=$(date +%s) # end time of script
 runtime=$(((end - start))) # calculate runtime
 
-### 
-echo -e "\n#\tProcessed >>>| $YELLOW${output_file_echo}$RESTORE |<<< in {$YELLOW${runtime} sec$RESTORE}\n\n"
+###
+echo -e "\n#\tProcessed >>>| $YELLOW${output_file}$RESTORE |<<< in {$YELLOW${runtime} sec$RESTORE}\n\n"
 ###
 
 echo -e "\n#\t$YELLOW${user}$RESTORE, Thanks for using $YELLOW\"fastA2Q\"$RESTORE\n\n###"
