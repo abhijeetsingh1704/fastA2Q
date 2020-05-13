@@ -1,20 +1,17 @@
 #!/bin/bash
-
+###########
 #	Program 	- 	fastA2Q
 #	Written by	-	Abhijeet Singh (abhijeetsingh.aau@gmail.com)
-#	Time 		-	Wed May 13 13:54:37 CEST 2020 
-
-# 	set pipefail
+#	Time 		-	Wed May 13 13:54:37 CEST 2020
+###########
+#	set pipefail
 	set -uo pipefail
-
-# 	making colour variable	
+#	making colour variable
 	RESTORE='\033[0m'
 	YELLOW='\033[01;33m'
 	LRED='\033[01;31m'
-
 #	Recording the time whent the script was started
 	start=$(date +%s) #start time of script
-
 #	echo script name
 echo -e "$LRED\
  _________________________________________
@@ -27,73 +24,51 @@ echo -e "$LRED\
 ${RESTORE}\n#\t${YELLOW}©Abhijeet Singh${RESTORE}
 #\t${YELLOW}-abhijeetsingh.aau@gmail.com${RESTORE}"
 
-
-#   	Variable for the date
-    	DATE=$(date +"%Y%m%d_%H:%M:%S")
-
+#	Variable for the date
+    DATE=$(date +"%Y%m%d_%H:%M:%S")
 #	Setting up variables
-    	input_file=""
-    	output_file=""
-
+    input_file=""
+    output_file=""
 #	Defaults variables
-    	output_file_def="fastA2Q_${DATE}.fastq"
-    	version_def="1.0"
-
+    output_file_def="fastA2Q_${DATE}.fastq"
+    version_def="1.0"
 #	Username
-    	user="${SUDO_USER:-${USER}}"
+    user="${SUDO_USER:-${USER}}"
 
 #	Defining flags
-
-#   function
+#   Function
 usage() {
 echo "Usage   : $0 [-i <input file>] [-o <output file>]
 Example : fastA2Q -i /<input file>/ -o /<output file>/" 1>&2; return 1;
 }
-
 #   flags
 while getopts "i:o:hvc" flags;
     do
         case "${flags}" in
-            i)
-                input_file=${OPTARG}
-                ;;
-            o)
-                output_file=${OPTARG}
-                ;;
-            h)
-                echo -e "\n#\tExample : fastA2Q -i /<input file>/ -o /<output file>/\n"
-		echo -e "\t-i\tInput file"
-		echo -e "\t-o\tOutput file"
-		echo -e "\t-h\tprint Help"
-		echo -e "\t-v\tprint fastA2Q version"
-		echo -e "\t-c\tCitation\n###"
-                exit
-                ;;
-            v)
-                echo -e "\n#\tfastA2Q version: ${version_def}\n###"
-                exit
-                ;;
-	    c)
-		echo -e "\n#\tIf you use ${YELLOW}fastA2Q${RESTORE}, please cite as:\n"
-		echo -e "\tCitation:\n"
-		echo -e "\tAbhijeet Singh"
-		echo -e "\tfastA2Q: a simple and convenient program to convert fasta\n\tsequences to fastq sequences"
-		echo -e "\thttps://github.com/abhijeetsingh1704/fastA2Q"
-		echo -e "\tdoi: 10.13140/RG.2.2.13695.15529\n###"
-		exit
-		;;
-            *)
-                usage
-                exit
-                ;;
-            :)
-                usage
-                exit
-                ;;
-            \?)
-                usage
-                exit
-                ;;
+            i) input_file=${OPTARG};;
+            o) output_file=${OPTARG};;
+            h) echo -e "\n#\tExample : fastA2Q -i /<input file>/ -o /<output file>/\n"
+			echo -e "\t-i\tInput file"
+			echo -e "\t-o\tOutput file"
+			echo -e "\t-h\tprint Help"
+			echo -e "\t-v\tprint fastA2Q version"
+			echo -e "\t-c\tCitation\n###"
+			exit;;
+            v) echo -e "\n#\tfastA2Q version: ${version_def}\n###"
+			exit;;
+	    	c) echo -e "\n#\tIf you use ${YELLOW}fastA2Q${RESTORE}, please cite as:\n"
+			echo -e "\tCitation:\n"
+			echo -e "\tAbhijeet Singh"
+			echo -e "\tfastA2Q: a simple and convenient program to convert fasta\n\tsequences to fastq sequences"
+			echo -e "\thttps://github.com/abhijeetsingh1704/fastA2Q"
+			echo -e "\tdoi: 10.13140/RG.2.2.13695.15529\n###"
+			exit;;
+            *) usage
+			exit;;
+            :) usage
+			exit;;
+            \?) usage
+			exit;;
         esac
     done
 shift $((OPTIND-1))
@@ -108,7 +83,6 @@ else
 fi
 
 #	Getting input
-
     #   Check if input file provided
         if [ -z "${input_file}" ] ; then
             echo -e "\n#\t${LRED}Input file not provided, Aborting!!!\n###\n${RESTORE} ${YELLOW}"
@@ -116,7 +90,6 @@ fi
             echo -e "\n###${RESTORE}"
             exit 1
         fi
-
     #   Check if input file is accessible
         if [ ! -f "${input_file}" ] ; then
             echo -e "\n#\t${LRED}Input file ${input_file} could not be found, Aborting!!!\n###\n${RESTORE} ${YELLOW}"
@@ -137,7 +110,6 @@ fi
         fi
 
 #	Checking output file provided or using default
-
     if [ "$output_file" == "" ]; then
         output_file="${input_path}/${output_file_def}"
         echo -e "\n#\tUsing default output file:"
@@ -148,12 +120,9 @@ fi
     fi
 
 #   making a new file
-
     perl -pe '/^>/ ? print "\n" : chomp' "${input_file}" | sed '/^$/d' | sed '/>/d' > "${input_file}.tmp"
 
 ### making fastq header components (constant variables)
-
-
     #   unique instrument name
         P1=$(tr -dc '[:upper:]' < /dev/urandom | dd bs=32 count=1 status=none | fold -w 3 | head -n 1)
     #   run id
@@ -173,8 +142,7 @@ fi
         #   change your ASCII symbol if you want
         #   but this is already phred score 20 and above
             ASCII=`cat /dev/urandom | tr -dc '5678<9:;=?ABC>DEFGHI' | fold -w $size | head -n 1`
-        #	making fastq header components (variable variables)
-
+        #   making fastq header components (variable variables)
         #   tile number within the flowcell lane
             P5=$(tr -dc '0-9' < /dev/urandom | dd bs=32 count=1 status=none | fold -w 4 | head -n 1)
         #   'x'-coordinate of the cluster within the tile
@@ -211,13 +179,12 @@ fi
     #   Displaying file contents
         echo -e "\t\t${YELLOW}${nseq}${RESTORE} fastq sequences"
 
-# 	getting ened time	
+# 	getting ened time
 	end=$(date +%s) # end time of script
 	runtime=$(((end - start))) # calculate runtime
 
 ### Echo process info
 	echo -e "\n#\tProcessing time: ${YELLOW}${runtime} sec${RESTORE}"
 	echo -e "\n#\t$YELLOW${user}$RESTORE, Thanks for using $YELLOW\"fastA2Q\"$RESTORE\n###"
-
 ### End of script
 exit 0
