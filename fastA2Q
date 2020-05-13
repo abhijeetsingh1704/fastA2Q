@@ -62,26 +62,26 @@ while getopts "i:o:hvc" flags;
                 ;;
             h)
                 echo -e "\n#\tExample : fastA2Q -i /<input file>/ -o /<output file>/\n"
-				echo -e "\t-i\tInput file"
-				echo -e "\t-o\tOutput file"
-				echo -e "\t-h\tprint Help"
-				echo -e "\t-v\tprint fastA2Q version"
-				echo -e "\t-c\tCitation\n###"
+		echo -e "\t-i\tInput file"
+		echo -e "\t-o\tOutput file"
+		echo -e "\t-h\tprint Help"
+		echo -e "\t-v\tprint fastA2Q version"
+		echo -e "\t-c\tCitation\n###"
                 exit
                 ;;
             v)
                 echo -e "\n#\tfastA2Q version: ${version_def}\n###"
                 exit
                 ;;
-			c)
-				echo -e "\n#\tIf you use ${YELLOW}fastA2Q${RESTORE}, please cite as:\n"
-				echo -e "\tCitation:\n"
-				echo -e "\tAbhijeet Singh"
-				echo -e "\tfastA2Q: a simple and convenient program to convert fasta\n\tsequences to fastq sequences"
-				echo -e "\thttps://github.com/abhijeetsingh1704/fastA2Q"
-				echo -e "\tdoi: 10.13140/RG.2.2.13695.15529\n###"
-				exit
-				;;
+	    c)
+		echo -e "\n#\tIf you use ${YELLOW}fastA2Q${RESTORE}, please cite as:\n"
+		echo -e "\tCitation:\n"
+		echo -e "\tAbhijeet Singh"
+		echo -e "\tfastA2Q: a simple and convenient program to convert fasta\n\tsequences to fastq sequences"
+		echo -e "\thttps://github.com/abhijeetsingh1704/fastA2Q"
+		echo -e "\tdoi: 10.13140/RG.2.2.13695.15529\n###"
+		exit
+		;;
             *)
                 usage
                 exit
