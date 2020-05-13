@@ -28,19 +28,19 @@ ${RESTORE}\n#\t${YELLOW}©Abhijeet Singh${RESTORE}
 #\t${YELLOW}-abhijeetsingh.aau@gmail.com${RESTORE}"
 
 
-#	Variable for the date
-    DATE=$(date +"%Y%m%d_%H:%M:%S")
+#   	Variable for the date
+    	DATE=$(date +"%Y%m%d_%H:%M:%S")
 
 #	Setting up variables
-    input_file=""
-    output_file=""
+    	input_file=""
+    	output_file=""
 
 #	Defaults variables
-    output_file_def="fastA2Q_${DATE}.fastq"
-    version_def="1.0"
+    	output_file_def="fastA2Q_${DATE}.fastq"
+    	version_def="1.0"
 
 #	Username
-    user="${SUDO_USER:-${USER}}"
+    	user="${SUDO_USER:-${USER}}"
 
 #	Defining flags
 
