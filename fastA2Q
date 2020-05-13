@@ -2,24 +2,20 @@
 
 #	Program 	- 	fastA2Q
 #	Written by	-	Abhijeet Singh (abhijeetsingh.aau@gmail.com)
-#	Time 		-	tis 12 maj 2020 22:30:19 CEST
+#	Time 		-	Wed May 13 13:54:37 CEST 2020 
 
-# set pipefail
+# 	set pipefail
+	set -uo pipefail
 
-set -uo pipefail
+# 	making colour variable	
+	RESTORE='\033[0m'
+	YELLOW='\033[01;33m'
+	LRED='\033[01;31m'
 
-# making colour variable
-RESTORE='\033[0m'
-YELLOW='\033[01;33m'
-LRED='\033[01;31m'
+#	Recording the time whent the script was started
+	start=$(date +%s) #start time of script
 
-
-###    Recording the time whent the script was started
-
-start=$(date +%s) #start time of script
-
-###
-
+#	echo script name
 echo -e "$LRED\
  _________________________________________
 |   __           _      _    ____   ___   |
@@ -29,44 +25,35 @@ echo -e "$LRED\
 | |_|  \__|_|___/\__/_/   \_\_____|\__\_\ |
 |_________________________________________|
 ${RESTORE}\n#\t${YELLOW}©Abhijeet Singh${RESTORE}
-#\t${YELLOW}-abhijeetsingh.aau@gmail.com${RESTORE}
-"
+#\t${YELLOW}-abhijeetsingh.aau@gmail.com${RESTORE}"
 
-### Variable for the date
 
-    DATE=$(date +"%Y%m%d_%H_%M_%S")
+#	Variable for the date
+    DATE=$(date +"%Y%m%d_%H:%M:%S")
 
-### Setting up variables
-
+#	Setting up variables
     input_file=""
     output_file=""
 
-### Defaults variables
-
+#	Defaults variables
     output_file_def="fastA2Q_${DATE}.fastq"
     version_def="1.0"
 
-### Username
-
+#	Username
     user="${SUDO_USER:-${USER}}"
 
-### Defining flags
+#	Defining flags
 
 #   function
-
 usage() {
 echo "Usage   : $0 [-i <input file>] [-o <output file>]
 Example : fastA2Q -i /<input file>/ -o /<output file>/" 1>&2; return 1;
 }
 
-
 #   flags
-
-while getopts "i:o:hv" flags;
-
+while getopts "i:o:hvc" flags;
     do
         case "${flags}" in
-
             i)
                 input_file=${OPTARG}
                 ;;
@@ -74,19 +61,27 @@ while getopts "i:o:hv" flags;
                 output_file=${OPTARG}
                 ;;
             h)
-                echo "
-Example : fastA2Q -i /<input file>/ -o /<output file>/
-
-        -i      Input file
-        -o      Output file
-        -h      print Help
-        -v      print fastA2Q version"
+                echo -e "\n#\tExample : fastA2Q -i /<input file>/ -o /<output file>/\n"
+				echo -e "\t-i\tInput file"
+				echo -e "\t-o\tOutput file"
+				echo -e "\t-h\tprint Help"
+				echo -e "\t-v\tprint fastA2Q version"
+				echo -e "\t-c\tCitation\n###"
                 exit
                 ;;
             v)
-                echo -e "${YELLOW}fastA2Q version: ${version_def}${RESTORE}\n\n###"
+                echo -e "\n#\tfastA2Q version: ${version_def}\n###"
                 exit
                 ;;
+			c)
+				echo -e "\n#\tIf you use ${YELLOW}fastA2Q${RESTORE}, please cite as:\n"
+				echo -e "\tCitation:\n"
+				echo -e "\tAbhijeet Singh"
+				echo -e "\tfastA2Q: a simple and convenient program to convert fasta\n\tsequences to fastq sequences"
+				echo -e "\thttps://github.com/abhijeetsingh1704/fastA2Q"
+				echo -e "\tdoi: 10.13140/RG.2.2.13695.15529\n###"
+				exit
+				;;
             *)
                 usage
                 exit
@@ -101,24 +96,20 @@ Example : fastA2Q -i /<input file>/ -o /<output file>/
                 ;;
         esac
     done
-
 shift $((OPTIND-1))
 
-### check
-
+#	check
 if ((OPTIND == 1));then
-    echo -e "\n#\tInput file not provided, Aborting!\n"
+    echo -e "\n#\tInput file not provided, Aborting!"
     usage
-    exit
+    exit 1
 else
-    echo -e "\n#\tProcessing: ${input_file}\n"
+    echo -e "\n#\tProcessing: ${input_file}"
 fi
 
-
-### Getting input
+#	Getting input
 
     #   Check if input file provided
-
         if [ -z "${input_file}" ] ; then
             echo -e "\n#\t${LRED}Input file not provided, Aborting!!!\n###\n${RESTORE} ${YELLOW}"
             usage
@@ -127,7 +118,6 @@ fi
         fi
 
     #   Check if input file is accessible
-
         if [ ! -f "${input_file}" ] ; then
             echo -e "\n#\t${LRED}Input file ${input_file} could not be found, Aborting!!!\n###\n${RESTORE} ${YELLOW}"
             usage
@@ -135,48 +125,31 @@ fi
             exit 1
         else
             #   Making variable paths
-
                 input_path=$(dirname "$(realpath "${input_file}")")
-
             #   Checking file contents
-
                 echo -e "\n#\tContents of input file ${YELLOW}$(basename "${input_file}")${RESTORE}"
-
             #   Counting number of bases
-
                 npos=$(grep -v '>' "${input_file}" | wc | awk '{print $3-$1}')
-
             #   Counting number of sequences
-
                 nseq=$(grep -c '>' "${input_file}")
-
             #   Displaying file contents
-
                 echo -e "\t\t${YELLOW}${npos}${RESTORE} bases in ${YELLOW}${nseq}${RESTORE} sequences"
         fi
 
-
-
-### Checking output file provided or using default
+#	Checking output file provided or using default
 
     if [ "$output_file" == "" ]; then
-        output_file="${output_file_def}"
+        output_file="${input_path}/${output_file_def}"
         echo -e "\n#\tUsing default output file:"
-        echo -e "\t\t${YELLOW}${output_file_def}${RESTORE}"
+        echo -e "\t\t${YELLOW}${output_file}${RESTORE}"
     else
-        echo -e "\n#\tOutput file:"
+		echo -e "\n#\tOutput file:"
         echo -e "\t\t${YELLOW}${output_file}${RESTORE}"
     fi
 
-### Checking output path
-
-    output_path=${input_path}
-
-
-    #   making a new file
+#   making a new file
 
     perl -pe '/^>/ ? print "\n" : chomp' "${input_file}" | sed '/^$/d' | sed '/>/d' > "${input_file}.tmp"
-
 
 ### making fastq header components (constant variables)
 
@@ -190,21 +163,17 @@ fi
     #   flowcell lane
         P4=$(tr -dc '1-8' < /dev/urandom | dd bs=32 count=1 status=none | fold -w 1 | head -n 1)
 
-###
-
-printf "" > "${output_path}/${output_file}"
-
+# 	generating output file
+	printf "" > "${output_file}"
 #
     for line in $(cat "${input_file}.tmp")
         do
             chrlen=${#line}
             size=$( echo "$(($chrlen-1))")
-
         #   change your ASCII symbol if you want
         #   but this is already phred score 20 and above
             ASCII=`cat /dev/urandom | tr -dc '5678<9:;=?ABC>DEFGHI' | fold -w $size | head -n 1`
-
-        ### making fastq header components (variable variables)
+        #	making fastq header components (variable variables)
 
         #   tile number within the flowcell lane
             P5=$(tr -dc '0-9' < /dev/urandom | dd bs=32 count=1 status=none | fold -w 4 | head -n 1)
@@ -222,46 +191,33 @@ printf "" > "${output_path}/${output_file}"
             P11=$(tr -dc 'ATGC' < /dev/urandom | dd bs=32 count=1 status=none | fold -w 8 | head -n 1)
         #   index 2 sequence
             P12=$(tr -dc 'CAGT' < /dev/urandom | dd bs=32 count=1 status=none | fold -w 8 | head -n 1)
-
         #   defining the character variable for quality part
             character=$( echo "${ASCII}")
-
 #   making fastq
-
     echo -e "${line}" |\
         sed -e "1i@${P1}:${P2}:${P3}:${P4}:${P5}:${P6}:${P7} ${P8}:${P9}:${P10}:${P11}+${P12}"  | \
         sed -e "\$a+\n${character}"  | \
-        cut -c -"${size}"  #>> ${output_file} #| cut -c -$size >>
-
+        cut -c -"${size}"  
     # closing while loop
-        done >> "${output_path}/${output_file}"
+        done >> "${output_file}"
 
-
-    # remove temporary file
+# remove temporary file
         find "${input_path}" -name "${input_file}.tmp" -exec rm {} \;
 
 #   Checking outputfile contents
-
-    echo -e "\n#\tContents of output file ${YELLOW}$(basename "${output_path}/${output_file}" )${RESTORE}"
-
+    echo -e "\n#\tContents of output file ${YELLOW}$(basename "${output_file}" )${RESTORE}"
     #   Counting number of sequences
-
-        nseq=$(grep -c '@' "${output_path}/${output_file}")
-
+        nseq=$(grep -c '@' "${output_file}")
     #   Displaying file contents
-
         echo -e "\t\t${YELLOW}${nseq}${RESTORE} fastq sequences"
 
+# 	getting ened time	
+	end=$(date +%s) # end time of script
+	runtime=$(((end - start))) # calculate runtime
 
-###
+### Echo process info
+	echo -e "\n#\tProcessing time: ${YELLOW}${runtime} sec${RESTORE}"
+	echo -e "\n#\t$YELLOW${user}$RESTORE, Thanks for using $YELLOW\"fastA2Q\"$RESTORE\n###"
 
-# getting ened time
-end=$(date +%s) # end time of script
-runtime=$(((end - start))) # calculate runtime
-
-###
-echo -e "\n#\tProcessed >>>| $YELLOW${output_file}$RESTORE |<<< in {$YELLOW${runtime} sec$RESTORE}\n\n"
-###
-
-echo -e "\n#\t$YELLOW${user}$RESTORE, Thanks for using $YELLOW\"fastA2Q\"$RESTORE\n\n###"
 ### End of script
+exit 0
